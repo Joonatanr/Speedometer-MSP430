@@ -8,9 +8,7 @@
 MAIN_STRUCT m =
 {
      .show_value =  1u,    // Set to 1, so we update at the start.
-     .complete =    0u,
      .rpm =         0u,
-     .tick =        0u,
 };
 
 const disp_config_struct disp_conf =

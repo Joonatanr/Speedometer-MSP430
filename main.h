@@ -14,8 +14,6 @@
 typedef struct __MAIN_STRUCT
 {
     U8  show_value;
-    U16 tick;           // to count 10msec intervals.
-    U8  complete;
     U32 rpm;
 }MAIN_STRUCT;
 

@@ -10,12 +10,14 @@ void calculate_rpm(void);
 static void port_init(void);
 static void timer_init(void);
 
-
 static inline void timer_10msec (void);
 static inline void timer_1sec (void);
 
-U16 wait_10msec = 0u;     // count 10 msec interrupts continuously
-U16 cTimer = 0u;          // count 10 msec interrupts for 1 second calculation
+static U16 wait_10msec = 0u;                   // count 10 msec interrupts continuously
+static U16 cTimer = 0u;                        // count 10 msec interrupts for 1 second calculation
+static U8 msec_counter = 0u;
+
+static U16   sensor_ms_counter = 0u;    // counts milliseconds between sensor ticks.
 volatile U32 tick_total_count = 0u;
 
 void wait20mksec (U16 i)
@@ -46,7 +48,7 @@ void register_init(void)
 
 /*** Private functions start here **/
 
-void port_init (void)
+static void port_init (void)
 {
   /* P1.0 --- Indicator LED           */
 
@@ -77,7 +79,7 @@ void port_init (void)
   P2REN |=BIT4;
 }
 
-void timer_init (void)
+static void timer_init (void)
 {
    DCOCTL = 0;                     // Select lowest DCOx and MODx settings 
    BCSCTL1 = CALBC1_1MHZ;          // Set DCO 
@@ -92,18 +94,12 @@ void timer_init (void)
    _EINT();
   }
 
-void timer2_init (void){
-  CCTL1 = CCIE;
-  TA1CTL = TASSEL_2 + MC_2 + ID_3; //Continuous, divide clock with 8
-}
-
-static U8 msec_counter = 0u;
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void Timer_A (void)
 {
     //1 msec interval
-    m.tick++;
+    sensor_ms_counter++;
 
     if (++msec_counter < 10u)
     {
@@ -142,9 +138,9 @@ inline static void timer_1sec (void)
   /* So this updates the speed sensor automatically? TODO : Review, it might be unnecessary */
   m.show_value = 1u;
 
-  if (m.tick > 400u)
+  if (sensor_ms_counter > 400u)
   {
-    m.tick = 0u;
+    sensor_ms_counter = 0u;
     m.rpm = 0u;
   }
 }
@@ -182,19 +178,20 @@ U32 rnd (unsigned long x)
     return x;
 }
 
+
 void calculate_rpm (void)
 {
   U32 value;
 
   //Assume that this is debounce effect?
-  if (m.tick < SENSOR_DEBOUNCE ){ return ;}
+  if (sensor_ms_counter < SENSOR_DEBOUNCE ){ return ;}
 
   tick_total_count++;
   //m.tick is in 1msec intervals.
-  value = 60000u / m.tick;
+  value = 60000u / sensor_ms_counter;
 
   m.rpm = value;
-  m.tick = 0u;
+  sensor_ms_counter = 0u;
 }
 
 U8 isSensor   (void){if (ISBIT (P2IN,BIT4)) {return (0u);}else {return (1u);}}
