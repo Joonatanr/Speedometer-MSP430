@@ -42,30 +42,13 @@ void uart_init (void)
  
 int x1_handle_data (void)
 {
-  char abi [6];
-  int x;
-  if (!x1_event){return 0;}
+  if (!x1_event){ return 0; }
   
+  /* TODO : Put command handling here, if necessary. */
+
   //ECHO
   x1_string ("Re: ");
   x1_string (x1_str);
-  
-  if (!strncmp (x1_str,"PER",3))
-  {
-    x = atoi(x1_str + 3);
-    if (x > 100)
-    {
-        x = 100;
-    }
-    else if (x < 0)
-    {
-        x = 0;
-    }
-    x1_string ("Period is now : ");
-    long2string(x, abi);
-    x1_string (abi);
-    TA1CCR1 = x * 10;
-  }
 
   x1_event = 0;
   x1_istr = 0;
