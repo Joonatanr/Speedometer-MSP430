@@ -3,7 +3,9 @@
 #include "main.h"
 #include "uart.h"
 
-void calculate_speed(void);
+#define SENSOR_DEBOUNCE 6u //Sensor debounce in 10msec increments.
+
+void calculate_rpm(void);
 
 static void port_init(void);
 static void timer_init(void);
@@ -47,7 +49,7 @@ void port_init (void)
   /* P1.1 --- UART RxD                */
   /* P1.2 --- UART TxD                */
 
-  /* P1.4 --- Display Backlight       */
+  /* P1.3 --- Display Backlight       */
   /* P1.5 --- Display Register Select */
   /* P1.6 --- Indicator LED2          */
   /* P2.0 --- Display Chip Select     */
@@ -57,10 +59,11 @@ void port_init (void)
 
   /* Initialize LED pin */
   P1DIR |= BIT0;
+  P1DIR |= BIT6;
   /* LCD needs 4 control outputs... */
   P1DIR |= BIT5;                /*  1.5  */
   P2DIR |= BIT0 + BIT1 + BIT2;  /*  2.0  2.1  2.2 */
-  P1DIR |= BIT4;
+  P1DIR |= BIT3;
 
   /* 2.4 - sensor input. */
   P2DIR &= ~BIT4;
@@ -112,12 +115,14 @@ __interrupt void Port_2(void)
 {
   P2IE  &= ~BIT4;
   P2IFG &= ~BIT4;       // P1.4 IFG cleared
-  tick_total_count++;
 
-  calculate_speed ();
-  m.show_value = 1u;    /* Should we trigger a redraw every time? */
+  if (isSensor())
+  {
+      calculate_rpm ();
+      m.show_value = 1u;    /* Should we trigger a redraw every time? */
+  }
 
-  m.tick = 0;           //Reset msec counter.
+  //Why is this necessary???
   P2IE |= BIT4;         // P1.4 interrupt enabled
 }
 
@@ -136,23 +141,19 @@ U32 rnd (unsigned long x)
     return x;
 }
 
-void calculate_speed (void)
+void calculate_rpm (void)
 {
-  unsigned long s;
-  unsigned long v;
-  if (m.tick < 5){return ;}
-  s = m.wheel_diameter * PI;
+  U32 value;
 
-  v = s / m.tick;
-  v = v * 36;
-  v = v / 100;
-  v = rnd (v);
+  //Assume that this is debounce effect?
+  if (m.tick < SENSOR_DEBOUNCE ){ return ;}
 
-  if (v > 1500)
-  {
-      return;
-  }
-  m.speed = v;
+  tick_total_count++;
+  //m.tick is in 10msec intervals.
+  value = 6000u / m.tick;
+
+  m.rpm = value;
+  m.tick = 0u;
 }
 
 U8 isSensor   (void){if (ISBIT (P2IN,BIT4)) {return (0u);}else {return (1u);}}
@@ -160,7 +161,7 @@ U8 isSensor   (void){if (ISBIT (P2IN,BIT4)) {return (0u);}else {return (1u);}}
 void set_led       (U8 b)   {if(b){SETBIT(P1OUT, BIT0);} else {CLRBIT(P1OUT,  BIT0);}}
 void set_led2      (U8 b)   {if(b){SETBIT(P1OUT, BIT6);} else {CLRBIT(P1OUT,  BIT6);}}
 
-void set_backlight (U8 b)   {if(b){SETBIT(P1OUT, BIT4);} else {CLRBIT(P1OUT,  BIT4);}}
+void set_backlight (U8 b)   {if(b){SETBIT(P1OUT, BIT3);} else {CLRBIT(P1OUT,  BIT3);}}
 void set_rs        (U8 b)   {if(b){SETBIT(P1OUT, BIT5);} else {CLRBIT(P1OUT,  BIT5);}}
 void set_cs        (U8 b)   {if(b){SETBIT(P2OUT, BIT0);} else {CLRBIT(P2OUT,  BIT0);}}
 void set_clk       (U8 b)   {if(b){SETBIT(P2OUT, BIT1);} else {CLRBIT(P2OUT,  BIT1);}}
