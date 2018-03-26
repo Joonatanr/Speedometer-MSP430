@@ -43,6 +43,10 @@ void register_init(void)
 void port_init (void)
 {
   /* P1.0 --- Indicator LED           */
+
+  /* P1.1 --- UART RxD                */
+  /* P1.2 --- UART TxD                */
+
   /* P1.4 --- Display Backlight       */
   /* P1.5 --- Display Register Select */
   /* P1.6 --- Indicator LED2          */

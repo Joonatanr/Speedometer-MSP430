@@ -18,7 +18,6 @@ void uart_init (void)
     UCA0CTL1 |= UCSSEL_2; // SMCLK
     UCA0BR0 = 104; // 1MHz 9600 (N=BRCLK/baudrate)
     UCA0BR1 = 0; // 1MHz 9600
-    //UCA0BRS0=1;
     UCA0MCTL = UCBRS0; // Modulation UCBRSx = 1
     UCA0CTL1 &= ~UCSWRST; // **Initialize USCI state machine**
     //IE1 |= URXIE0 + UTXIE0; //Enable TxD, RxD interrupts.
