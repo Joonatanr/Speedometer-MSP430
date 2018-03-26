@@ -2,14 +2,9 @@
 #include "display.h"
 #include "register.h"
 #include "misc.h"
-#include "main.h"
 
 
-MAIN_STRUCT m =
-{
-     .show_value =  1u,    // Set to 1, so we update at the start.
-     .rpm =         0u,
-};
+volatile U8 redraw_display_measurement_flag = 0u; /* External global variable, set by register.c */
 
 const disp_config_struct disp_conf =
 {
@@ -39,11 +34,11 @@ int main(void)
   while (1)
   {
     //Main cycle
-    if (m.show_value)
+    if (redraw_display_measurement_flag == 1u)
     {
-        m.show_value = 0;
+        redraw_display_measurement_flag = 0;
 
-        value2string (m.rpm, buf ,0 ,'R');
+        value2string (get_rpm_measurement(), buf ,0 ,'R');
         addchar (buf,'P');
         addchar (buf,'M');
 
@@ -53,7 +48,7 @@ int main(void)
 
         disp_write_string(buf, 6u, DISP_HIGH);
 
-        long2string(tick_total_count, buf);
+        long2string(rotation_total_count, buf);
         disp_write_string(buf, 0u, DISP_LOW);
     }
   }

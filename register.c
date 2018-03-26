@@ -1,24 +1,46 @@
 #include "msp430g2553.h"
 #include "register.h"
-#include "main.h"
 #include "uart.h"
 
-#define SENSOR_DEBOUNCE 6u //Sensor debounce in 10msec increments.
+#define SENSOR_DEBOUNCE 50u //Sensor debounce in 10msec increments.
 
-void calculate_rpm(void);
-
+/* Static function forward declarations. */
 static void port_init(void);
 static void timer_init(void);
-
 static inline void timer_10msec (void);
 static inline void timer_1sec (void);
+static U32 calculate_rpm_single (U32 interval);
 
-static U16 wait_10msec = 0u;                   // count 10 msec interrupts continuously
-static U16 cTimer = 0u;                        // count 10 msec interrupts for 1 second calculation
-static U8 msec_counter = 0u;
+/* Private variable declarations. */
 
-static U16   sensor_ms_counter = 0u;    // counts milliseconds between sensor ticks.
-volatile U32 tick_total_count = 0u;
+static U16 wait_10msec  = 0u;                  // count 10 msec intervals continuously
+static U16 cTimer       = 0u;                  // count 10 msec intervals for 1 second calculation
+static U8 msec_counter  = 0u;                  // count 1  msec intervals for 10 msec calculation
+
+volatile U16    sensor_ms_counter =     0u;    // counts milliseconds between sensor ticks.
+volatile U32    rotation_total_count  = 0u;    // Holds the total count of rotations.
+
+static U16      priv_rpm_measurement = 0u;     // Holds the current RPM measurement.
+
+
+/* Public function declarations */
+
+void register_init(void)
+{
+    port_init (); //Initalize port directions
+
+    timer_init (); //Initialize timer
+
+    uart_init ();
+}
+
+/* TODO : We should change this to a more complex measurement with multiple samples.
+ * Currently idea is just to get at least something to work. */
+U16 get_rpm_measurement(void)
+{
+    return priv_rpm_measurement;
+}
+
 
 void wait20mksec (U16 i)
 {
@@ -36,14 +58,6 @@ void wait_msec (U16 time)
   while (wait_10msec < time);
 }
 
-void register_init(void)
-{
-    port_init (); //Initalize port directions
-
-    timer_init (); //Initialize timer
-
-    uart_init ();
-}
 
 
 /*** Private functions start here **/
@@ -131,17 +145,14 @@ inline static void timer_10msec (void)
 
 inline static void timer_1sec (void)
 {
-  static U8  led_state = 0u;
-  led_state = !led_state;
-  //set_led2(led_state);
-
-  /* So this updates the speed sensor automatically? TODO : Review, it might be unnecessary */
-  m.show_value = 1u;
+  /* Currently we redraw the display every 1 second. */
+  /* TODO : Probably can and should update faster. Lets get rest of stuff working before trying that. */
+  redraw_display_measurement_flag = 1u;
 
   if (sensor_ms_counter > 400u)
   {
     sensor_ms_counter = 0u;
-    m.rpm = 0u;
+    priv_rpm_measurement = 0u;
   }
 }
 
@@ -155,43 +166,25 @@ __interrupt void Port_2(void)
 
   if (isSensor())
   {
-      calculate_rpm ();
-      m.show_value = 1u;    /* Should we trigger a redraw every time? */
+      //Assume that this is debounce effect?
+      if (sensor_ms_counter >= SENSOR_DEBOUNCE )
+      {
+          //We register 1 rotation.
+          priv_rpm_measurement = calculate_rpm_single (sensor_ms_counter);
+          rotation_total_count++;
+          sensor_ms_counter = 0u;
+      }
   }
 
   //Why is this necessary???
   P2IE |= BIT4;         // P1.4 interrupt enabled
 }
 
-/* TODO : This function is way too complex for such a simple operation. */
-U32 rnd (unsigned long x)
+
+/* Returns 1 single RPM measurement based on the interval between two sensor readings. */
+static U32 calculate_rpm_single (U32 interval)
 {
-    int z = (int)fmod (x , 5);
-    if (z > 2)
-    {
-        x += (5 - z);
-    }
-    else
-    {
-        x -= z;
-    }
-    return x;
-}
-
-
-void calculate_rpm (void)
-{
-  U32 value;
-
-  //Assume that this is debounce effect?
-  if (sensor_ms_counter < SENSOR_DEBOUNCE ){ return ;}
-
-  tick_total_count++;
-  //m.tick is in 1msec intervals.
-  value = 60000u / sensor_ms_counter;
-
-  m.rpm = value;
-  sensor_ms_counter = 0u;
+    return 60000u / interval;
 }
 
 U8 isSensor   (void){if (ISBIT (P2IN,BIT4)) {return (0u);}else {return (1u);}}

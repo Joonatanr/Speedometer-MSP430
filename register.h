@@ -10,9 +10,13 @@
 
 #include "typedefs.h"
 
-extern volatile U32 tick_total_count; /* This variable contains the total number of ticks that have been recorded. */
+/* Globally used variables */
+extern volatile U8 redraw_display_measurement_flag;
+extern volatile U32 rotation_total_count; /* This variable contains the total number of ticks that have been recorded. */
 
+/* Public functions */
 extern void register_init(void);
+extern U16 get_rpm_measurement(void);
 
 extern void set_backlight (U8 b);
 extern void set_si        (U8 b);
