@@ -8,9 +8,9 @@ void calculate_speed(void);
 static void port_init(void);
 static void timer_init(void);
 
-U16 wait_10msec = 0;     // count 10 msec interrupts continuously
-U16 cTimer = 0;          // count 10 msec interrupts for 1 second calculation
-
+U16 wait_10msec = 0u;     // count 10 msec interrupts continuously
+U16 cTimer = 0u;          // count 10 msec interrupts for 1 second calculation
+volatile U32 tick_total_count = 0u;
 
 void wait20mksec (U16 i)
 {
@@ -64,13 +64,10 @@ void port_init (void)
 
   /* 2.4 - sensor input. */
   P2DIR &= ~BIT4;
+  /* Enable interrupt on P2.4 */
   P2IE |=BIT4;
-  P2REN |=BIT4;
   //Enable pull-up on P2.4
   P2REN |=BIT4;
-
-  /* P1 --- BIT0, BIT6 */
-  /* P2 --- BIT3, BIT4, BIT5 */
 }
 
 void timer_init (void)
@@ -115,12 +112,16 @@ __interrupt void Port_2(void)
 {
   P2IE  &= ~BIT4;
   P2IFG &= ~BIT4;       // P1.4 IFG cleared
-  m.show_value = 1;
+  tick_total_count++;
+
   calculate_speed ();
+  m.show_value = 1u;    /* Should we trigger a redraw every time? */
+
   m.tick = 0;           //Reset msec counter.
   P2IE |= BIT4;         // P1.4 interrupt enabled
 }
 
+/* TODO : This function is way too complex for such a simple operation. */
 U32 rnd (unsigned long x)
 {
     int z = (int)fmod (x , 5);
@@ -141,7 +142,6 @@ void calculate_speed (void)
   unsigned long v;
   if (m.tick < 5){return ;}
   s = m.wheel_diameter * PI;
-  m.tick_cnt++;
 
   v = s / m.tick;
   v = v * 36;

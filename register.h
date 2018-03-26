@@ -10,6 +10,8 @@
 
 #include "typedefs.h"
 
+extern volatile U32 tick_total_count; /* This variable contains the total number of ticks that have been recorded. */
+
 extern void register_init(void);
 
 extern void set_backlight (U8 b);

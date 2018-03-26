@@ -4,19 +4,26 @@
 #include "misc.h"
 #include "main.h"
 
-U8  led_state = 0u;
+typedef struct
+{
+    U16 meters;
+    U16 kilometer;
+} Distance_T;
 
-void add_dist(void);
+static void add_dist(void);
 
 MAIN_STRUCT m =
 {
-     .show_value =  1u,
+     .show_value =  1u,    // Set to 1, so we update at the start.
      .complete =    0u,
      .speed =       0u,
      .tick =        0u,
-     .distance =    0u,    // Keeps track of passed distance in meters.
-     .kilometer =   0u,    //Keeps track of passed distance in kilometers.
-     .tick_cnt =    0u,
+};
+
+static Distance_T myDistance =
+{
+    .meters =      0u,    // Keeps track of passed distance in meters.
+    .kilometer =   0u,    //Keeps track of passed distance in kilometers.
 };
 
 const disp_config_struct disp_conf =
@@ -29,6 +36,7 @@ const disp_config_struct disp_conf =
 };
 
 static char buf[64];
+static U8  led_state = 0u;
 
 int main(void)
 {
@@ -55,24 +63,10 @@ int main(void)
         addchar (buf, 0xA0); addchar (buf, 0xA0); addchar (buf, 0xA0);
         disp_write_string(buf, 6u, DISP_HIGH);
         add_dist();
-        value2string (m.distance, buf, 0,'m');
+        value2string (myDistance.meters, buf, 0,'m');
         disp_write_string(buf, 0u, DISP_LOW);
     }
   }
-}
-
-void add_dist (void)
-{
-    unsigned long x;
-    x = m.tick_cnt * (PI * m.wheel_diameter);
-    x = x / 10000;
-    m.distance = x;
-
-    if (m.distance > 1000u)
-    {
-      m.distance = 0;
-      m.kilometer++;
-    }
 }
 
 
@@ -87,6 +81,8 @@ void timer_1sec (void)
 {
   led_state = !led_state;
   set_led(led_state);
+
+  /* So this updates the speed sensor automatically? TODO : Review, it might be unnecessary */
   m.show_value = 1u;
 
   if (m.tick > 400u)
@@ -94,5 +90,20 @@ void timer_1sec (void)
     m.tick = 0u;
     m.speed = 0u;
   }
+}
+
+
+static void add_dist (void)
+{
+    U32 x;
+    x = tick_total_count * (PI * m.wheel_diameter);
+    x = x / 10000;
+    myDistance.meters = x;
+
+    if (myDistance.meters > 1000u)
+    {
+      myDistance.meters = 0;
+      myDistance.kilometer++;
+    }
 }
 

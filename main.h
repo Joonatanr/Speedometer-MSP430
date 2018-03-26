@@ -15,12 +15,9 @@ typedef struct __MAIN_STRUCT
 {
     U8  show_value;
     U16 tick; // to count 10msec intervals.
-    U8 complete;
+    U8  complete;
     U32 speed; //20.0 km/h - 200
     U32 wheel_diameter; //Currently set to 68 cm.
-    U32 distance;
-    U32 tick_cnt;
-    U32 kilometer;
 }MAIN_STRUCT;
 
 extern MAIN_STRUCT m;
