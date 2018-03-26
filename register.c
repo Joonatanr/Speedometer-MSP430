@@ -143,6 +143,7 @@ inline static void timer_10msec (void)
     set_led(isSensor());
 }
 
+
 inline static void timer_1sec (void)
 {
   /* Currently we redraw the display every 1 second. */
@@ -173,6 +174,9 @@ __interrupt void Port_2(void)
           priv_rpm_measurement = calculate_rpm_single (sensor_ms_counter);
           rotation_total_count++;
           sensor_ms_counter = 0u;
+
+          //We need to update the number of rotations on the display.
+          redraw_display_measurement_flag = 1u;
       }
   }
 
