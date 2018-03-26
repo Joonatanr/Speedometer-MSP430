@@ -23,7 +23,6 @@ const disp_config_struct disp_conf =
 };
 
 static char buf[32];
-static U8  led_state = 0u;
 
 int main(void)
 {
@@ -59,29 +58,6 @@ int main(void)
         long2string(tick_total_count, buf);
         disp_write_string(buf, 0u, DISP_LOW);
     }
-  }
-}
-
-
-/* Timer functions.  */
-void timer_10msec (void)
-{
-  set_led(isSensor());
-  m.tick++;
-}
-
-void timer_1sec (void)
-{
-  led_state = !led_state;
-  //set_led2(led_state);
-
-  /* So this updates the speed sensor automatically? TODO : Review, it might be unnecessary */
-  m.show_value = 1u;
-
-  if (m.tick > 400u)
-  {
-    m.tick = 0u;
-    m.rpm = 0u;
   }
 }
 

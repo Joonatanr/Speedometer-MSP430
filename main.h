@@ -21,7 +21,3 @@ typedef struct __MAIN_STRUCT
 
 extern MAIN_STRUCT m;
 
-/****main.c****/
-void timer_10msec (void);
-void timer_1sec (void);
-

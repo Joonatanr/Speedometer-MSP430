@@ -10,6 +10,10 @@ void calculate_rpm(void);
 static void port_init(void);
 static void timer_init(void);
 
+
+static inline void timer_10msec (void);
+static inline void timer_1sec (void);
+
 U16 wait_10msec = 0u;     // count 10 msec interrupts continuously
 U16 cTimer = 0u;          // count 10 msec interrupts for 1 second calculation
 volatile U32 tick_total_count = 0u;
@@ -78,10 +82,11 @@ void timer_init (void)
    DCOCTL = 0;                     // Select lowest DCOx and MODx settings 
    BCSCTL1 = CALBC1_1MHZ;          // Set DCO 
    DCOCTL = CALDCO_1MHZ; 
-  // Configure Timer 
-    CCTL0 = CCIE;                             // CCR0 interrupt enabled 
-    CCR0 = 10000; 
-    TACTL = TASSEL_2 + MC_1;                  // SMCLK, continuous mode  
+
+   // Configure Timer for cyclic interrupts
+   CCTL0 = CCIE;                             // CCR0 interrupt enabled
+   CCR0 = 1000u;                             // Set to 1 kHz
+   TACTL = TASSEL_2 + MC_1;                  // SMCLK, continuous mode
 
    // enable interrupts
    _EINT();
@@ -92,20 +97,56 @@ void timer2_init (void){
   TA1CTL = TASSEL_2 + MC_2 + ID_3; //Continuous, divide clock with 8
 }
 
+static U8 msec_counter = 0u;
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void Timer_A (void)
 {
+    //1 msec interval
+    m.tick++;
 
-         ///////////// 10 msec interval
-	++wait_10msec;
+    if (++msec_counter < 10u)
+    {
+        return;
+    }
+    msec_counter = 0u;
+
+    ///////////// 10 msec interval
 	timer_10msec();
-        //UCA0TXBUF = 50;  
-	if (++cTimer < 100) return;
+
+	if (++cTimer < 100)
+	{
+	    return;
+	}
+
 	cTimer = 0;
 
 	//////////// 1 second interval
     timer_1sec();
+}
+
+
+/* Timer functions.  */
+inline static void timer_10msec (void)
+{
+    ++wait_10msec;
+    set_led(isSensor());
+}
+
+inline static void timer_1sec (void)
+{
+  static U8  led_state = 0u;
+  led_state = !led_state;
+  //set_led2(led_state);
+
+  /* So this updates the speed sensor automatically? TODO : Review, it might be unnecessary */
+  m.show_value = 1u;
+
+  if (m.tick > 400u)
+  {
+    m.tick = 0u;
+    m.rpm = 0u;
+  }
 }
 
 
@@ -149,8 +190,8 @@ void calculate_rpm (void)
   if (m.tick < SENSOR_DEBOUNCE ){ return ;}
 
   tick_total_count++;
-  //m.tick is in 10msec intervals.
-  value = 6000u / m.tick;
+  //m.tick is in 1msec intervals.
+  value = 60000u / m.tick;
 
   m.rpm = value;
   m.tick = 0u;
