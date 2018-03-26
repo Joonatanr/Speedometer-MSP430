@@ -56,9 +56,9 @@ void add_point (char *s, U8 dec)
   s[i] = '.';
 }
 
-void format_volt (U16 volt, char *s, U8 dec, char unit)
+void value2string (U16 value, char *s, U8 dec, char unit)
 {
-  long2string (volt, s);
+  long2string (value, s);
   add_point (s, dec);
   addchar (s, unit);
 }

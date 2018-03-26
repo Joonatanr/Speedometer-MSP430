@@ -10,13 +10,13 @@ void add_dist(void);
 
 MAIN_STRUCT m =
 {
-     .show_value =  1,
-     .complete =    0,
-     .speed =       0,
-     .tick =        0,
-     .distance =    0,    // Keeps track of passed distance in meters.
-     .kilometer =   0,    //Keeps track of passed distance in kilometers.
-     .tick_cnt =    0,
+     .show_value =  1u,
+     .complete =    0u,
+     .speed =       0u,
+     .tick =        0u,
+     .distance =    0u,    // Keeps track of passed distance in meters.
+     .kilometer =   0u,    //Keeps track of passed distance in kilometers.
+     .tick_cnt =    0u,
 };
 
 const disp_config_struct disp_conf =
@@ -32,7 +32,7 @@ static char buf[64];
 
 int main(void)
 {
-  m.wheel_diameter = 68;
+  m.wheel_diameter = 68u;
 
   // Stop watchdog timer to prevent time out reset
   WDTCTL = WDTPW + WDTHOLD;
@@ -50,12 +50,12 @@ int main(void)
     if (m.show_value)
     {
         m.show_value=0;
-        format_volt (m.speed, buf ,1,'k');
+        value2string (m.speed, buf ,1,'k');
         addchar (buf,'m'); addchar (buf,'/'); addchar (buf,'h');
         addchar (buf, 0xA0); addchar (buf, 0xA0); addchar (buf, 0xA0);
         disp_write_string(buf, 6u, DISP_HIGH);
         add_dist();
-        format_volt (m.distance, buf, 0,'m');
+        value2string (m.distance, buf, 0,'m');
         disp_write_string(buf, 0u, DISP_LOW);
     }
   }
@@ -68,7 +68,7 @@ void add_dist (void)
     x = x / 10000;
     m.distance = x;
 
-    if (m.distance > 1000)
+    if (m.distance > 1000u)
     {
       m.distance = 0;
       m.kilometer++;
@@ -87,12 +87,12 @@ void timer_1sec (void)
 {
   led_state = !led_state;
   set_led(led_state);
-  m.show_value = 1;
+  m.show_value = 1u;
 
-  if (m.tick > 400)
+  if (m.tick > 400u)
   {
-    m.tick = 0;
-    m.speed = 0;
+    m.tick = 0u;
+    m.speed = 0u;
   }
 }
 
