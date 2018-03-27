@@ -1,6 +1,7 @@
 #include "msp430g2553.h"
 #include "register.h"
 #include "uart.h"
+#include "measurements.h"
 
 #define SENSOR_DEBOUNCE 50u //Sensor debounce in 10msec increments.
 
@@ -172,6 +173,7 @@ __interrupt void Port_2(void)
       {
           //We register 1 rotation.
           priv_rpm_measurement = calculate_rpm_single (sensor_ms_counter);
+          push_sample(priv_rpm_measurement);
           rotation_total_count++;
           sensor_ms_counter = 0u;
 
