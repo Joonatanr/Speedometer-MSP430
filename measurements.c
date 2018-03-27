@@ -6,6 +6,7 @@
  */
 
 #include "measurements.h"
+#include "msp430g2553.h"
 
 #define NUMBER_OF_SAMPLES_TOTAL     8u
 #define NUMBER_OF_SAMPLES_HIGH      8u
@@ -15,6 +16,8 @@
 #define HI_THRESHOLD                240u //We begin the high sample rate at   240 RPM
 #define MED_THRESHOLD               120u //We begin the medium sample rate at 120RPM
 
+#define ENTER_CRITICAL_SECTION() _DINT()
+#define EXIT_CRITICAL_SECTION() _EINT()
 
 typedef struct __measurement__
 {
@@ -121,17 +124,19 @@ static U8 get_samples(U8 number_of_samples, U16 * dest)
 {
     /* Get the last N samples */
     /* Returns number of samples that were successfully retrieved */
-    /* TODO : Add critical section. */
 
     U8 res = 0u;
-    measurement_T * sample_ptr = priv_head_ptr;
+    measurement_T * sample_ptr;
 
+    ENTER_CRITICAL_SECTION();
+    sample_ptr = priv_head_ptr;
     while((sample_ptr != NULL) && (res < number_of_samples))
     {
         dest[res] = sample_ptr->value;
         res++;
         sample_ptr = sample_ptr->next;
     }
+    EXIT_CRITICAL_SECTION();
 
     return res;
 }
