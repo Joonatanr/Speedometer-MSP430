@@ -4,12 +4,13 @@
 #include "measurements.h"
 
 #define SENSOR_DEBOUNCE 50u //Sensor debounce in 10msec increments.
+#define SENSOR_TIMEOUT 400u //if no measurements for 4 seconds, then we assume that we are at a standstill.
 
 /* Static function forward declarations. */
 static void port_init(void);
 static void timer_init(void);
 static inline void timer_10msec (void);
-static inline void timer_1sec (void);
+static inline void timer_500msec (void);
 static U32 calculate_rpm_single (U32 interval);
 
 /* Private variable declarations. */
@@ -46,7 +47,7 @@ U16 get_rpm_measurement(void)
 void wait20mksec (U16 i)
 {
     U16 x;
-    for (x = 0; x < i; x++)
+    for (x = i; x > 0u; x--)
     {
       __delay_cycles (20);
     }
@@ -92,6 +93,8 @@ static void port_init (void)
   P2IE |=BIT4;
   //Enable pull-up on P2.4
   P2REN |=BIT4;
+
+  P3DIR = 0u;
 }
 
 static void timer_init (void)
@@ -125,15 +128,15 @@ __interrupt void Timer_A (void)
     ///////////// 10 msec interval
 	timer_10msec();
 
-	if (++cTimer < 100)
+	if (++cTimer < 50u)
 	{
 	    return;
 	}
 
 	cTimer = 0;
 
-	//////////// 1 second interval
-    timer_1sec();
+	//////////// Half-second interval
+    timer_500msec();
 }
 
 
@@ -145,13 +148,12 @@ inline static void timer_10msec (void)
 }
 
 
-inline static void timer_1sec (void)
+inline static void timer_500msec (void)
 {
-  /* Currently we redraw the display every 1 second. */
-  /* TODO : Probably can and should update faster. Lets get rest of stuff working before trying that. */
+  /* Currently we redraw the display every 500 ms. */
   redraw_display_measurement_flag = 1u;
 
-  if (sensor_ms_counter > 400u)
+  if (sensor_ms_counter > SENSOR_TIMEOUT)
   {
     sensor_ms_counter = 0u;
     priv_rpm_measurement = 0u;
@@ -176,9 +178,6 @@ __interrupt void Port_2(void)
           push_sample(priv_rpm_measurement);
           rotation_total_count++;
           sensor_ms_counter = 0u;
-
-          //We need to update the number of rotations on the display.
-          redraw_display_measurement_flag = 1u;
       }
   }
 
@@ -193,7 +192,7 @@ static U32 calculate_rpm_single (U32 interval)
     return 60000u / interval;
 }
 
-U8 isSensor   (void){if (ISBIT (P2IN,BIT4)) {return (0u);}else {return (1u);}}
+U8 isSensor (void){ if (ISBIT (P2IN,BIT4)) {return (0u);} else {return (1u);} }
 
 void set_led       (U8 b)   {if(b){SETBIT(P1OUT, BIT0);} else {CLRBIT(P1OUT,  BIT0);}}
 void set_led2      (U8 b)   {if(b){SETBIT(P1OUT, BIT6);} else {CLRBIT(P1OUT,  BIT6);}}

@@ -2,7 +2,7 @@
 #include "display.h"
 #include "register.h"
 #include "misc.h"
-
+#include "measurements.h"
 
 volatile U8 redraw_display_measurement_flag = 0u; /* External global variable, set by register.c */
 
@@ -38,10 +38,12 @@ int main(void)
     {
         redraw_display_measurement_flag = 0;
 
-        value2string (get_rpm_measurement(), buf ,0 ,'R');
+        /*value2string (get_rpm_measurement(), buf ,0 ,'R');*/
+        value2string (get_measurement_value(), buf ,0 ,'R');
         addchar (buf,'P');
         addchar (buf,'M');
 
+        /* Add blanks to the end. */
         addchar (buf, 0xA0);
         addchar (buf, 0xA0);
         addchar (buf, 0xA0);

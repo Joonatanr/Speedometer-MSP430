@@ -14,7 +14,7 @@
 #define NUMBER_OF_LINES_MODE    (U8)0x01u
 #define DH_MODE                 (U8)0x00u
 
-disp_config_struct * priv_disp_conf_ptr;
+const disp_config_struct * priv_disp_conf_ptr;
 
 #define DELAY_MS(t) (priv_disp_conf_ptr->delay_func((U16)(t)))
 
@@ -203,6 +203,5 @@ static void disp_on_off_set (U8 d, U8 c, U8 b)
     cmnd += b;
     execute_LCD (0u,cmnd);
 }
-
 
 
