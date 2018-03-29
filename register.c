@@ -3,8 +3,8 @@
 #include "uart.h"
 #include "measurements.h"
 
-#define SENSOR_DEBOUNCE 50u //Sensor debounce in 10msec increments.
-#define SENSOR_TIMEOUT 400u //if no measurements for 4 seconds, then we assume that we are at a standstill.
+#define SENSOR_DEBOUNCE  50u //Sensor debounce in 1msec increments.
+#define SENSOR_TIMEOUT 4000u //if no measurements for 4 seconds, then we assume that we are at a standstill.
 
 /* Static function forward declarations. */
 static void port_init(void);
@@ -157,6 +157,7 @@ inline static void timer_500msec (void)
   {
     sensor_ms_counter = 0u;
     priv_rpm_measurement = 0u;
+    redraw_display_measurement_flag = 1u;
   }
 }
 
