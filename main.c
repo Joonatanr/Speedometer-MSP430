@@ -38,8 +38,8 @@ int main(void)
     {
         redraw_display_measurement_flag = 0;
 
-        value2string (get_rpm_measurement(), buf ,0 ,'R');
-        /*value2string (get_measurement_value(), buf ,0 ,'R');*/
+        /*value2string (get_rpm_measurement(), buf ,0 ,'R');*/
+        value2string (get_measurement_value(), buf ,0 ,'R');
         addchar (buf,'P');
         addchar (buf,'M');
 

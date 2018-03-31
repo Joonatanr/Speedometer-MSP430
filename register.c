@@ -150,15 +150,14 @@ inline static void timer_10msec (void)
 
 inline static void timer_500msec (void)
 {
-  /* Currently we redraw the display every 500 ms. */
-  redraw_display_measurement_flag = 1u;
-
   if (sensor_ms_counter > SENSOR_TIMEOUT)
   {
     sensor_ms_counter = 0u;
     priv_rpm_measurement = 0u;
-    redraw_display_measurement_flag = 1u;
   }
+
+  /* Currently we redraw the display every 500 ms. */
+  redraw_display_measurement_flag = 1u;
 }
 
 

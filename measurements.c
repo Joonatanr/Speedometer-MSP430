@@ -106,12 +106,10 @@ U16 get_measurement_value(void)
         /* We remove 2 of the worst samples. */
         avg -= max;
         avg -= min;
-        avg = avg / (NUMBER_OF_SAMPLES_TOTAL - 2u);
+        number_of_samples -= 2u;
     }
-    else
-    {
-        avg = avg / NUMBER_OF_SAMPLES_TOTAL;
-    }
+
+    avg = avg / number_of_samples;
 
     return avg;
 
