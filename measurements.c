@@ -26,12 +26,31 @@ typedef struct __measurement__
 } measurement_T;
 
 static U8 get_samples(U8 number_of_samples, U16 * dest);
+static inline U32 round_to_five(U32 input);
 
 
 Private measurement_T samples_array[NUMBER_OF_SAMPLES_TOTAL];
 Private measurement_T * priv_head_ptr;
 
 Private U8  curr_ix = 0u; /* Direct memory index... */
+
+
+void set_measurements_zero(void)
+{
+    U8 ix;
+    ENTER_CRITICAL_SECTION();
+
+    priv_head_ptr = NULL;
+    curr_ix = 0u;
+
+    for (ix = 0u; ix < NUMBER_OF_SAMPLES_TOTAL; ix++)
+    {
+        samples_array[ix].value = 0u;
+        samples_array[ix].next = NULL;
+    }
+
+    EXIT_CRITICAL_SECTION();
+}
 
 /***************************** public function definitions *********************************/
 void push_sample(U16 sample)
@@ -111,8 +130,18 @@ U16 get_measurement_value(void)
 
     avg = avg / number_of_samples;
 
-    return avg;
+    return round_to_five(avg);
 
+}
+
+
+static inline U32 round_to_five(U32 input)
+{
+    U32 res;
+    U8 mod = input % 5u;
+
+    res = (mod > 2u) ? (input + (5u - mod)) : (input - mod);
+    return res;
 }
 
 

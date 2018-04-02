@@ -26,6 +26,8 @@ int main(void)
 
   disp_set_conf(&disp_conf);
 
+  set_measurements_zero();
+
   disp_init ();
 
   set_backlight(1u);
@@ -39,7 +41,9 @@ int main(void)
         redraw_display_measurement_flag = 0;
 
         /*value2string (get_rpm_measurement(), buf ,0 ,'R');*/
-        value2string (get_measurement_value(), buf ,0 ,'R');
+        value2string (get_measurement_value(), buf ,0 ,' ');
+
+        addchar (buf,'R');
         addchar (buf,'P');
         addchar (buf,'M');
 

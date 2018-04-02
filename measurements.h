@@ -10,6 +10,7 @@
 
 #include "typedefs.h"
 
+void set_measurements_zero(void);
 void push_sample(U16 sample);
 U16 get_measurement_value(void);
 

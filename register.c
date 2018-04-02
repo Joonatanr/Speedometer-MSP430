@@ -154,6 +154,7 @@ inline static void timer_500msec (void)
   {
     sensor_ms_counter = 0u;
     priv_rpm_measurement = 0u;
+    set_measurements_zero();
   }
 
   /* Currently we redraw the display every 500 ms. */
